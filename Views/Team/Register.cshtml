@@ -47,9 +47,9 @@
                         <span asp-validation-for="Member1Name" class="text-danger small"></span>
                     </div>
 
-                    <div class="mb-4">
+                    <div class="mb-4" id="member2-container">
                         <label asp-for="Member2Name" class="form-label fw-bold"></label>
-                        <input asp-for="Member2Name" class="form-control" placeholder="Nombre completo del integrante 2 (opcional)" />
+                        <input asp-for="Member2Name" class="form-control" placeholder="Nombre completo del integrante 2" />
                         <span asp-validation-for="Member2Name" class="text-danger small"></span>
                     </div>
 
@@ -66,4 +66,28 @@
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const memberCountInput = document.getElementById('MemberCount');
+            const member2Container = document.getElementById('member2-container');
+            const member2Label = document.querySelector('label[for="Member2Name"]');
+            
+            function toggleMember2() {
+                if (memberCountInput.value === '2') {
+                    member2Container.style.display = 'block';
+                    member2Label.innerHTML = 'Nombre del integrante 2 <span class="text-danger">*</span>';
+                } else {
+                    member2Container.style.display = 'none';
+                    document.getElementById('Member2Name').value = ''; // limpiar input
+                }
+            }
+
+            // Iniciar el estado
+            toggleMember2();
+
+            // Escuchar cambios
+            memberCountInput.addEventListener('change', toggleMember2);
+            memberCountInput.addEventListener('input', toggleMember2);
+        });
+    </script>
 }

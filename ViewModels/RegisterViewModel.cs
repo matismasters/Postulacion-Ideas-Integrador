@@ -1,8 +1,9 @@
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
 namespace IntegradorIdeas.ViewModels
 {
-    public class RegisterViewModel
+    public class RegisterViewModel : IValidatableObject
     {
         [Required(ErrorMessage = "El nombre del equipo es obligatorio.")]
         [StringLength(100)]
@@ -30,5 +31,16 @@ namespace IntegradorIdeas.ViewModels
 
         [Display(Name = "Nombre del integrante 2 (Opcional)")]
         public string? Member2Name { get; set; }
+
+        public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+        {
+            if (MemberCount == 2 && string.IsNullOrWhiteSpace(Member2Name))
+            {
+                yield return new ValidationResult(
+                    "El nombre del segundo integrante es obligatorio.", 
+                    new[] { nameof(Member2Name) }
+                );
+            }
+        }
     }
 }
