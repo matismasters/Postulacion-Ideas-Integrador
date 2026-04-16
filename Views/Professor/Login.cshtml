@@ -1,0 +1,42 @@
+@model IntegradorIdeas.ViewModels.ProfessorLoginViewModel
+
+@{
+    ViewData["Title"] = "Acceso Profesores";
+}
+
+<div class="row justify-content-center mt-5">
+    <div class="col-md-5">
+        <div class="card shadow border-0">
+            <div class="card-header bg-dark text-white text-center py-3">
+                <h4 class="mb-0"><i class="bi bi-person-badge-fill me-2"></i>Acceso Profesores</h4>
+            </div>
+            <div class="card-body p-4 bg-light">
+                
+                <form asp-action="Login" method="post">
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+                    <div class="mb-3">
+                        <label asp-for="Username" class="form-label fw-bold"></label>
+                        <input asp-for="Username" class="form-control" placeholder="Ingrese su usuario" autofocus />
+                        <span asp-validation-for="Username" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-4">
+                        <label asp-for="Password" class="form-label fw-bold"></label>
+                        <input asp-for="Password" class="form-control" placeholder="Contraseña" />
+                        <span asp-validation-for="Password" class="text-danger small"></span>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary btn-lg">Ingresar al Panel</button>
+                    </div>
+                </form>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

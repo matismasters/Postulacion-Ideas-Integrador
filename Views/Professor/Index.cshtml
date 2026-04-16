@@ -1,0 +1,62 @@
+@model IEnumerable<IntegradorIdeas.Models.Idea>
+
+@{
+    ViewData["Title"] = "Panel de Validación";
+}
+
+<div class="row mb-4 align-items-center mt-3">
+    <div class="col">
+        <h2 class="fw-bold"><i class="bi bi-ui-checks-grid me-2 text-primary"></i>Panel de Validación de Ideas</h2>
+    </div>
+</div>
+
+<div class="card shadow-sm border-0">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover table-striped mb-0 align-middle">
+                <thead class="table-dark">
+                    <tr>
+                        <th class="ps-4">Equipo</th>
+                        <th>Fecha</th>
+                        <th>Estado</th>
+                        <th class="text-end pe-4">Acción</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td class="ps-4 fw-bold">@item.Team?.Name</td>
+                            <td>@item.PostDate.ToString("dd/MM/yyyy HH:mm")</td>
+                            <td>
+                                @if (item.Status == IntegradorIdeas.Models.IdeaStatus.Pendiente)
+                                {
+                                    <span class="badge bg-warning text-dark">Pendiente</span>
+                                }
+                                else if (item.Status == IntegradorIdeas.Models.IdeaStatus.Aprobada)
+                                {
+                                    <span class="badge bg-success">Aprobada</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-danger">No Aprobada</span>
+                                }
+                            </td>
+                            <td class="text-end pe-4">
+                                <a asp-action="Evaluate" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-clipboard-check me-1"></i>Evaluar
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                    @if (!Model.Any())
+                    {
+                        <tr>
+                            <td colspan="4" class="text-center text-muted py-4">No hay ideas postuladas para validar.</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

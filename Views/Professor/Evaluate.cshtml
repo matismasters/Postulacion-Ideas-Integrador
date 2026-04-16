@@ -1,0 +1,75 @@
+@model IntegradorIdeas.ViewModels.ProfessorEvaluateViewModel
+
+@{
+    ViewData["Title"] = "Evaluar Idea";
+}
+
+<div class="row justify-content-center mt-4">
+    <div class="col-md-8">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-dark text-white py-3">
+                <h4 class="mb-0"><i class="bi bi-clipboard-check me-2"></i>Evaluar Postulación</h4>
+            </div>
+            <div class="card-body p-4 bg-light">
+                
+                <div class="mb-4">
+                    <h5 class="fw-bold text-muted border-bottom pb-2">Equipo: @Model.TeamName</h5>
+                    <p class="fs-5 mt-3">@Model.Text</p>
+                </div>
+
+                <form asp-action="Evaluate" method="post">
+                    <input type="hidden" asp-for="IdeaId" />
+                    
+                    <div class="alert alert-secondary">
+                        <h6 class="fw-bold mb-3">Criterios de Evaluación</h6>
+                        
+                        <div class="form-check mb-2">
+                            <input class="form-check-input form-check-input-lg" type="checkbox" asp-for="IsCreative">
+                            <label class="form-check-label fs-5" asp-for="IsCreative">
+                                Es creativa
+                            </label>
+                        </div>
+                        
+                        <div class="form-check mb-2">
+                            <input class="form-check-input form-check-input-lg" type="checkbox" asp-for="IsWellFormulated">
+                            <label class="form-check-label fs-5" asp-for="IsWellFormulated">
+                                Está bien planteada
+                            </label>
+                        </div>
+
+                        <hr />
+                        
+                        <div class="form-check mb-2">
+                            <input class="form-check-input form-check-input-lg" type="checkbox" asp-for="AprovedCheckbox">
+                            <label class="form-check-label fs-5 fw-bold text-success" asp-for="AprovedCheckbox">
+                                Aprobada
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label asp-for="ProfessorObservation" class="form-label fw-bold">Observación de mejora (Opcional)</label>
+                        <textarea asp-for="ProfessorObservation" class="form-control" rows="4" placeholder="Escriba aquí los comentarios de retroalimentación para el equipo..."></textarea>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary btn-lg">Guardar Evaluación</button>
+                        <a asp-action="Index" class="btn btn-outline-secondary">Cancelar</a>
+                    </div>
+                </form>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .form-check-input-lg {
+        width: 1.5em;
+        height: 1.5em;
+        margin-top: 0.1em;
+    }
+    .form-check-label {
+        margin-left: 0.5rem;
+    }
+</style>

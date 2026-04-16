@@ -1,0 +1,94 @@
+@model IEnumerable<IntegradorIdeas.Models.Idea>
+
+@{
+    ViewData["Title"] = "Plataforma de Ideas Creativas";
+}
+
+<div class="text-center mt-5 mb-5">
+    <h1 class="display-4 fw-bold text-dark mb-3">Plataforma de Ideas Creativas</h1>
+    <p class="lead text-muted">Proyectos Finales y Postulaciones Académicas</p>
+</div>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="bi bi-check-circle-fill me-2"></i>@TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>@TempData["ErrorMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<div class="row mb-4">
+    <div class="col-12 d-flex justify-content-between align-items-center border-bottom pb-2">
+        <h3 class="fw-bold fs-4 text-secondary mb-0"><i class="bi bi-collection-fill me-2"></i>Ideas Postuladas</h3>
+        <div>
+            <a asp-controller="Team" asp-action="Register" class="btn btn-outline-primary shadow-sm me-2"><i class="bi bi-person-plus-fill me-1"></i>Registrar Equipo</a>
+            <a asp-controller="Idea" asp-action="Post" class="btn btn-primary shadow-sm"><i class="bi bi-plus-lg me-1"></i>Postular Idea</a>
+        </div>
+    </div>
+</div>
+
+<div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+    @foreach (var idea in Model)
+    {
+        <div class="col">
+            <a asp-controller="Idea" asp-action="Details" asp-route-id="@idea.Id" class="text-decoration-none text-dark">
+                <div class="card h-100 shadow-sm border-0 idea-card transition-hover">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="card-title fw-bold mb-0 text-primary">@idea.Team?.Name</h5>
+                            @if (idea.Status == IntegradorIdeas.Models.IdeaStatus.Pendiente)
+                            {
+                                <span class="badge bg-warning text-dark px-2 py-1"><i class="bi bi-hourglass-split me-1"></i>Pendiente</span>
+                            }
+                            else if (idea.Status == IntegradorIdeas.Models.IdeaStatus.Aprobada)
+                            {
+                                <span class="badge bg-success px-2 py-1"><i class="bi bi-check-circle-fill me-1"></i>Aprobada</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-danger px-2 py-1"><i class="bi bi-x-circle-fill me-1"></i>No Aprobada</span>
+                            }
+                        </div>
+                        <p class="card-text text-muted line-clamp-3">@idea.Text</p>
+                    </div>
+                    <div class="card-footer bg-white border-top align-items-center">
+                        <small class="text-muted"><i class="bi bi-calendar3 me-1"></i>@idea.PostDate.ToString("dd/MM/yyyy HH:mm")</small>
+                    </div>
+                </div>
+            </a>
+        </div>
+    }
+
+    @if (!Model.Any())
+    {
+        <div class="col-12 text-center py-5">
+            <h5 class="text-muted">No hay ideas postuladas aún.</h5>
+            <p class="text-secondary">Se el primer equipo en enviar una propuesta.</p>
+        </div>
+    }
+</div>
+
+<style>
+    .idea-card {
+        transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    }
+    .idea-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
+        cursor: pointer;
+    }
+    .line-clamp-3 {
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;  
+        overflow: hidden;
+    }
+</style>

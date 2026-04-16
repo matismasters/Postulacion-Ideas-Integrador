@@ -1,0 +1,57 @@
+@model IntegradorIdeas.Models.Idea
+
+@{
+    ViewData["Title"] = "Detalle de Idea";
+}
+
+<div class="row justify-content-center mt-4">
+    <div class="col-md-8">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-dark text-white py-3 d-flex justify-content-between align-items-center">
+                <h4 class="mb-0"><i class="bi bi-file-text me-2"></i>Detalle de Idea</h4>
+                <span class="badge bg-secondary fs-6">@Model.Status.ToString()</span>
+            </div>
+            <div class="card-body p-4 bg-light">
+                
+                <div class="mb-4">
+                    <h5 class="fw-bold text-muted border-bottom pb-2">Información de la Propuesta</h5>
+                    <p class="fs-5 mt-3">@Model.Text</p>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-6 border-end">
+                        <h6 class="fw-bold text-muted">Datos del Equipo</h6>
+                        <ul class="list-unstyled mt-2">
+                            <li><strong>Equipo:</strong> @Model.Team?.Name</li>
+                            <li><strong>Fecha de postulación:</strong> @Model.PostDate.ToString("dd/MM/yyyy HH:mm")</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6 ps-4">
+                        <h6 class="fw-bold text-muted">Integrantes</h6>
+                        <ul class="list-unstyled mt-2">
+                            <li><i class="bi bi-person-fill text-primary me-1"></i> @Model.Team?.Member1Name</li>
+                            @if (!string.IsNullOrEmpty(Model.Team?.Member2Name))
+                            {
+                                <li><i class="bi bi-person-fill text-primary me-1"></i> @Model.Team?.Member2Name</li>
+                            }
+                        </ul>
+                    </div>
+                </div>
+
+                @if (!string.IsNullOrEmpty(Model.ProfessorObservation))
+                {
+                    <div class="alert alert-info mt-3 border-0 shadow-sm">
+                        <h6 class="alert-heading fw-bold"><i class="bi bi-chat-quote-fill me-2"></i>Observación del Profesor</h6>
+                        <hr>
+                        <p class="mb-0">@Model.ProfessorObservation</p>
+                    </div>
+                }
+
+                <div class="mt-4 text-center">
+                    <a asp-controller="Home" asp-action="Index" class="btn btn-outline-primary px-4"><i class="bi bi-arrow-left me-2"></i>Volver al Listado</a>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>

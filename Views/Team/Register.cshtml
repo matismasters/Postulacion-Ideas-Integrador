@@ -1,0 +1,69 @@
+@model IntegradorIdeas.ViewModels.RegisterViewModel
+
+@{
+    ViewData["Title"] = "Registro de Equipo";
+}
+
+<div class="row justify-content-center mt-5">
+    <div class="col-md-6">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-dark text-white text-center py-3">
+                <h4 class="mb-0"><i class="bi bi-people-fill me-2"></i>Registro de Equipo</h4>
+            </div>
+            <div class="card-body p-4 bg-light">
+                
+                <form asp-action="Register" method="post">
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+                    <div class="mb-3">
+                        <label asp-for="Name" class="form-label fw-bold"></label>
+                        <input asp-for="Name" class="form-control" placeholder="Ingrese el nombre del equipo" />
+                        <span asp-validation-for="Name" class="text-danger small"></span>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="Password" class="form-label fw-bold"></label>
+                            <input asp-for="Password" class="form-control" placeholder="Contraseña" />
+                            <span asp-validation-for="Password" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="ConfirmPassword" class="form-label fw-bold"></label>
+                            <input asp-for="ConfirmPassword" class="form-control" placeholder="Confirmar" />
+                            <span asp-validation-for="ConfirmPassword" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="MemberCount" class="form-label fw-bold"></label>
+                        <input asp-for="MemberCount" class="form-control" type="number" min="1" max="2" value="1" />
+                        <span asp-validation-for="MemberCount" class="text-danger small"></span>
+                        <div class="form-text">Máximo 2 integrantes admitidos.</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Member1Name" class="form-label fw-bold"></label>
+                        <input asp-for="Member1Name" class="form-control" placeholder="Nombre completo del integrante 1" />
+                        <span asp-validation-for="Member1Name" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-4">
+                        <label asp-for="Member2Name" class="form-label fw-bold"></label>
+                        <input asp-for="Member2Name" class="form-control" placeholder="Nombre completo del integrante 2 (opcional)" />
+                        <span asp-validation-for="Member2Name" class="text-danger small"></span>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary btn-lg">Registrar Equipo</button>
+                        <a asp-controller="Home" asp-action="Index" class="btn btn-outline-secondary">Cancelar</a>
+                    </div>
+                </form>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
