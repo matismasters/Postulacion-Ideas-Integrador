@@ -2,6 +2,9 @@
 
 @{
     ViewData["Title"] = "Plataforma de Ideas Creativas";
+    // Agrupamos las ideas: Las que son "Raíz" (no similares a nadie) y sus descendientes
+    var rootIdeas = Model.Where(i => i.SimilarToIdeaId == null).ToList();
+    var similarToRoot = Model.Where(i => i.SimilarToIdeaId != null).ToLookup(i => i.SimilarToIdeaId!.Value);
 }
 
 <div class="text-center mt-5 mb-5">
@@ -35,15 +38,74 @@
     </div>
 </div>
 
-<div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
-    @foreach (var idea in Model)
+<div class="row g-4">
+    @foreach (var root in rootIdeas)
     {
-        <div class="col">
-            <a asp-controller="Idea" asp-action="Details" asp-route-id="@idea.Id" class="text-decoration-none text-dark">
-                <div class="card h-100 shadow-sm border-0 idea-card transition-hover">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h5 class="card-title fw-bold mb-0 text-primary">@idea.Team?.Name</h5>
+        var clones = similarToRoot[root.Id].ToList();
+        
+        if (clones.Any())
+        {
+            var maxSimilarity = clones.Max(c => c.SimilarityPercentage);
+            @* GRUPO DE SIMILARES (AMARILLO) *@
+            <div class="col-12">
+                <div class="card border-similar shadow-sm group-card">
+                    <div class="card-header bg-similar-light d-flex justify-content-between align-items-center">
+                        <span class="fw-bold text-dark"><i class="bi bi-intersect me-2"></i>Ideas con Similitud</span>
+                        <div class="d-flex align-items-center">
+                            @if (maxSimilarity.HasValue)
+                            {
+                                <span class="badge bg-info text-white me-2 rounded-pill shadow-sm">
+                                    <i class="bi bi-percent me-1"></i>Similitud: @maxSimilarity.Value.ToString("F1")%
+                                </span>
+                            }
+                            <span class="badge bg-warning text-dark px-3">Grupo de @(clones.Count + 1) Ideas</span>
+                        </div>
+                    </div>
+                    <div class="card-body bg-light">
+                        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-3">
+                            @* Mostrar la Idea Original dentro del grupo *@
+                            <div class="col">
+                                @{ await RenderIdeaCard(root, "border-warning", null); }
+                            </div>
+                            @* Mostrar las ideas similares *@
+                            @foreach (var clone in clones)
+                            {
+                                <div class="col">
+                                    @{ await RenderIdeaCard(clone, "border-warning", clone.SimilarityPercentage); }
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+        else
+        {
+            @* IDEA ÚNICA (VERDE) *@
+            <div class="col-12 col-md-6 col-lg-4">
+                @{ await RenderIdeaCard(root, "border-unique", null); }
+            </div>
+        }
+    }
+
+    @if (!Model.Any())
+    {
+        <div class="col-12 text-center py-5">
+            <h5 class="text-muted">No hay ideas postuladas aún.</h5>
+            <p class="text-secondary">Se el primer equipo en enviar una propuesta.</p>
+        </div>
+    }
+</div>
+
+@{
+    async Task RenderIdeaCard(IntegradorIdeas.Models.Idea idea, string borderClass, double? similarity)
+    {
+        <a asp-controller="Idea" asp-action="Details" asp-route-id="@idea.Id" class="text-decoration-none text-dark h-100">
+            <div class="card h-100 shadow-sm border-2 @borderClass idea-card transition-hover">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="card-title fw-bold mb-0 text-primary">@idea.Team?.Name</h5>
+                        <div>
                             @if (idea.Status == IntegradorIdeas.Models.IdeaStatus.Pendiente)
                             {
                                 <span class="badge bg-warning text-dark px-2 py-1"><i class="bi bi-hourglass-split me-1"></i>Pendiente</span>
@@ -57,28 +119,37 @@
                                 <span class="badge bg-danger px-2 py-1"><i class="bi bi-x-circle-fill me-1"></i>No Aprobada</span>
                             }
                         </div>
-                        <p class="card-text text-muted line-clamp-3">@idea.Text</p>
                     </div>
-                    <div class="card-footer bg-white border-top align-items-center">
-                        <small class="text-muted"><i class="bi bi-calendar3 me-1"></i>@idea.PostDate.ToString("dd/MM/yyyy HH:mm")</small>
-                    </div>
+                    <p class="card-text text-muted line-clamp-3">@idea.Text</p>
                 </div>
-            </a>
-        </div>
+                <div class="card-footer bg-transparent border-0 pt-0">
+                    <small class="text-muted"><i class="bi bi-calendar3 me-1"></i>@idea.PostDate.ToString("dd/MM/yyyy HH:mm")</small>
+                </div>
+            </div>
+        </a>
     }
-
-    @if (!Model.Any())
-    {
-        <div class="col-12 text-center py-5">
-            <h5 class="text-muted">No hay ideas postuladas aún.</h5>
-            <p class="text-secondary">Se el primer equipo en enviar una propuesta.</p>
-        </div>
-    }
-</div>
+}
 
 <style>
+    .border-unique {
+        border-color: #198754 !important; /* Success / Green */
+        border-left-width: 5px !important;
+    }
+    .border-similar {
+        border-color: #ffc107 !important; /* Warning / Yellow */
+        border-width: 2px !important;
+    }
+    .bg-similar-light {
+        background-color: #fff9e6;
+        border-bottom: 1px solid #ffc107;
+    }
+    .group-card {
+        border-radius: 12px;
+        overflow: hidden;
+    }
     .idea-card {
         transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        border-radius: 10px;
     }
     .idea-card:hover {
         transform: translateY(-5px);

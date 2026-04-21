@@ -1,5 +1,6 @@
 using IntegradorIdeas.Data;
 using IntegradorIdeas.Models;
+using IntegradorIdeas.Services;
 using IntegradorIdeas.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -9,10 +10,12 @@ namespace IntegradorIdeas.Controllers
     public class IdeaController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly IIdeaSimilarityService _similarityService;
 
-        public IdeaController(ApplicationDbContext context)
+        public IdeaController(ApplicationDbContext context, IIdeaSimilarityService similarityService)
         {
             _context = context;
+            _similarityService = similarityService;
         }
 
         [HttpGet]
@@ -40,12 +43,31 @@ namespace IntegradorIdeas.Controllers
                     return View(model);
                 }
 
+                // VALIDACIÓN ANTI-DUPLICADOS CORE - Ahora permite publicar pero registra similitud
+                var existingIdeas = await _context.Ideas.ToListAsync();
+                Idea? mostSimilarIdea = null;
+                double maxSimilarity = 0;
+
+                foreach (var existing in existingIdeas)
+                {
+                    // No comparamos con ideas que ya son marcadas como similares a otra para evitar encadenamientos complejos (opcional)
+                    // O simplemente comparamos con todas y buscamos la mejor coincidencia.
+                    var match = _similarityService.CompareIdeas(model.Text, existing.Text);
+                    if (match.AreSimilar && match.SimilarityPercentage > maxSimilarity)
+                    {
+                        maxSimilarity = match.SimilarityPercentage;
+                        mostSimilarIdea = existing;
+                    }
+                }
+
                 var idea = new Idea
                 {
                     TeamId = team.Id,
                     Text = model.Text,
                     PostDate = DateTime.Now,
-                    Status = IdeaStatus.Pendiente
+                    Status = IdeaStatus.Pendiente,
+                    SimilarToIdeaId = mostSimilarIdea?.Id,
+                    SimilarityPercentage = mostSimilarIdea != null ? maxSimilarity : (double?)null
                 };
 
                 _context.Ideas.Add(idea);

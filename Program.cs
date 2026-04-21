@@ -1,6 +1,7 @@
 using IntegradorIdeas.Data;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
+using IntegradorIdeas.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,6 +17,8 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         options.LoginPath = "/Professor/Login";
         options.AccessDeniedPath = "/Home/Index";
     });
+
+builder.Services.AddScoped<IIdeaSimilarityService, IdeaSimilarityService>();
 
 var app = builder.Build();
 

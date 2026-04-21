@@ -25,9 +25,16 @@ namespace IntegradorIdeas.Models
         public bool IsWellFormulated { get; set; }
         
         public string? ProfessorObservation { get; set; }
+        
+        // Similitud detectada
+        public int? SimilarToIdeaId { get; set; }
+        public double? SimilarityPercentage { get; set; }
 
         // Navegation property
         [ForeignKey("TeamId")]
         public Team? Team { get; set; }
+
+        [ForeignKey("SimilarToIdeaId")]
+        public Idea? SimilarToIdea { get; set; }
     }
 }

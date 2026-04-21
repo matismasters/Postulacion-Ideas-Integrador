@@ -19,6 +19,7 @@ namespace IntegradorIdeas.Controllers
         {
             var ideas = await _context.Ideas
                 .Include(i => i.Team)
+                .Include(i => i.SimilarToIdea)
                 .OrderByDescending(i => i.PostDate) // Ordered by date
                 .OrderBy(i => i.Status == IdeaStatus.Aprobada ? 1 : (i.Status == IdeaStatus.NoAprobada ? 2 : 0)) // "y aprobadas no" ordered by status
                 .ToListAsync();
