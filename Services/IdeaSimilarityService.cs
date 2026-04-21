@@ -6,7 +6,7 @@ namespace IntegradorIdeas.Services
 {
     public class IdeaSimilarityService : IIdeaSimilarityService
     {
-        private const double SimilarityThreshold = 0.25;
+        private const double SimilarityThreshold = 0.30;
 
         private readonly HashSet<string> _stopWords = new(StringComparer.OrdinalIgnoreCase)
         {
@@ -45,9 +45,11 @@ namespace IntegradorIdeas.Services
             var unique2 = words2.Except(words1).ToList();
 
             int matchCount = similarWords.Count;
-            int minWordsCount = Math.Min(words1.Count, words2.Count);
             
-            double similarityPercentage = (double)matchCount / minWordsCount;
+            // Fórmula de Jaccard: Intersección / Unión
+            int unionCount = words1.Count + words2.Count - matchCount;
+            double similarityPercentage = (double)matchCount / unionCount;
+            
             bool areSimilar = similarityPercentage >= SimilarityThreshold;
 
             return new SimilarityResult
@@ -69,11 +71,18 @@ namespace IntegradorIdeas.Services
             var words = cleanText
                 .Split(new[] { ' ', '\t', '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries)
                 .Select(w => w.ToLowerInvariant())
+                .Select(NormalizeRepeatedCharacters) // Normalizar antes de filtrar
                 .Where(w => !_stopWords.Contains(w))
                 .Select(ApplySynonymsAndPronouns)
                 .Select(GetWordRoot); 
 
             return new HashSet<string>(words);
+        }
+
+        private string NormalizeRepeatedCharacters(string word)
+        {
+            // Reduce 3 o más repeticiones a una sola (ej. "aaaaa" -> "a")
+            return Regex.Replace(word, @"(.)\1{2,}", "$1");
         }
 
         private string RemoveDiacritics(string text)

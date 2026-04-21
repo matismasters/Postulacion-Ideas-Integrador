@@ -39,18 +39,22 @@
 </div>
 
 <div class="row g-4">
-    @foreach (var root in rootIdeas)
+    @if (rootIdeas.Any(r => similarToRoot[r.Id].Any()))
     {
-        var clones = similarToRoot[root.Id].ToList();
+        <div class="col-12 mt-4 mb-2">
+            <h4 class="text-secondary fw-bold"><i class="bi bi-intersect me-2"></i>Grupos de Ideas Similares</h4>
+            <hr />
+        </div>
         
-        if (clones.Any())
+        @foreach (var root in rootIdeas.Where(r => similarToRoot[r.Id].Any()))
         {
+            var clones = similarToRoot[root.Id].ToList();
             var maxSimilarity = clones.Max(c => c.SimilarityPercentage);
-            @* GRUPO DE SIMILARES (AMARILLO) *@
-            <div class="col-12">
+            
+            <div class="col-12 mb-4">
                 <div class="card border-similar shadow-sm group-card">
                     <div class="card-header bg-similar-light d-flex justify-content-between align-items-center">
-                        <span class="fw-bold text-dark"><i class="bi bi-intersect me-2"></i>Ideas con Similitud</span>
+                        <span class="fw-bold text-dark">Propuestas Similares entre sí</span>
                         <div class="d-flex align-items-center">
                             @if (maxSimilarity.HasValue)
                             {
@@ -63,11 +67,9 @@
                     </div>
                     <div class="card-body bg-light">
                         <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-3">
-                            @* Mostrar la Idea Original dentro del grupo *@
                             <div class="col">
                                 @{ await RenderIdeaCard(root, "border-warning", null); }
                             </div>
-                            @* Mostrar las ideas similares *@
                             @foreach (var clone in clones)
                             {
                                 <div class="col">
@@ -79,9 +81,17 @@
                 </div>
             </div>
         }
-        else
+    }
+
+    @if (rootIdeas.Any(r => !similarToRoot[r.Id].Any()))
+    {
+        <div class="col-12 mt-5 mb-2">
+            <h4 class="text-secondary fw-bold"><i class="bi bi-stars me-2"></i>Ideas Únicas</h4>
+            <hr />
+        </div>
+
+        @foreach (var root in rootIdeas.Where(r => !similarToRoot[r.Id].Any()))
         {
-            @* IDEA ÚNICA (VERDE) *@
             <div class="col-12 col-md-6 col-lg-4">
                 @{ await RenderIdeaCard(root, "border-unique", null); }
             </div>

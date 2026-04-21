@@ -60,13 +60,27 @@ namespace IntegradorIdeas.Controllers
                     }
                 }
 
+                // If we found a similar idea, we must find its ultimate root to flatten the chain
+                Idea? actualRoot = mostSimilarIdea;
+                if (actualRoot != null)
+                {
+                    // Check if the matched idea is already a clone pointing to someone else
+                    while (actualRoot.SimilarToIdeaId != null)
+                    {
+                        // We need to fetch the parent idea if it's not loaded
+                        var parentId = actualRoot.SimilarToIdeaId.Value;
+                        actualRoot = await _context.Ideas.FindAsync(parentId);
+                        if (actualRoot == null) break; // Should not happen with DB integrity
+                    }
+                }
+
                 var idea = new Idea
                 {
                     TeamId = team.Id,
                     Text = model.Text,
                     PostDate = DateTime.Now,
                     Status = IdeaStatus.Pendiente,
-                    SimilarToIdeaId = mostSimilarIdea?.Id,
+                    SimilarToIdeaId = actualRoot?.Id,
                     SimilarityPercentage = mostSimilarIdea != null ? maxSimilarity : (double?)null
                 };
 
