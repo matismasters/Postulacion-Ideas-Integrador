@@ -25,8 +25,23 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
     options.KnownProxies.Clear();
 });
 
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+if (string.IsNullOrEmpty(connectionString) || connectionString.Contains("/app/"))
+{
+    // Si estamos en Render (Docker), forzar la ruta de la base de datos persistente
+    // Si estamos local, usar lo que diga el appsettings o el default
+    if (Environment.GetEnvironmentVariable("RENDER") != null)
+    {
+         connectionString = "Data Source=/app/integrador.db";
+    }
+    else 
+    {
+         connectionString = connectionString ?? "Data Source=integrador.db";
+    }
+}
+
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlite("Data Source=/app/integrador.db"));
+    options.UseSqlite(connectionString));
 
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
@@ -60,7 +75,11 @@ catch (Exception ex)
 }
 
 // Configure the HTTP request pipeline.
-if (false && !app.Environment.IsDevelopment()) // Desactivado temporalmente para ver el error
+if (app.Environment.IsDevelopment())
+{
+    app.UseDeveloperExceptionPage();
+}
+else
 {
     app.UseExceptionHandler("/Home/Error");
     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.

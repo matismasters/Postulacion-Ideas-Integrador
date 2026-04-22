@@ -20,11 +20,16 @@ namespace IntegradorIdeas.Controllers
             var ideas = await _context.Ideas
                 .Include(i => i.Team)
                 .Include(i => i.SimilarToIdea)
-                .OrderBy(i => i.Status == IdeaStatus.Aprobada ? 1 : (i.Status == IdeaStatus.NoAprobada ? 2 : 0))
-                .ThenByDescending(i => i.PostDate)
                 .ToListAsync();
 
-            return View(ideas);
+            // Ordenamos en memoria para evitar problemas de traducción a SQL en SQLite
+            // con expresiones complejas o enums.
+            var sortedIdeas = ideas
+                .OrderBy(i => i.Status == IdeaStatus.Aprobada ? 1 : (i.Status == IdeaStatus.NoAprobada ? 2 : 0))
+                .ThenByDescending(i => i.PostDate)
+                .ToList();
+
+            return View(sortedIdeas);
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
