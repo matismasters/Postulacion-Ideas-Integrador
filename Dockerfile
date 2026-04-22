@@ -22,9 +22,8 @@ RUN chown -R app:app /app
 USER app
 
 # Exponer el puerto que usará Render
-# El puerto real será inyectado por Render en la variable de entorno $PORT
 ENV ASPNETCORE_URLS=http://+:10000
+ENV ASPNETCORE_ENVIRONMENT=Development
 EXPOSE 10000
-
 
 ENTRYPOINT ["dotnet", "IntegradorIdeas.dll"]
