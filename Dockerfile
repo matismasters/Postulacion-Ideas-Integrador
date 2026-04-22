@@ -1,22 +1,30 @@
-# Imagen base para compilación (Usamos .NET 10.0)
+# Imagen base para compilación
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
-WORKDIR /app
+WORKDIR /src
 
 # Copiar archivos del proyecto y restaurar dependencias
-COPY *.csproj ./
-RUN dotnet restore
+# Se copian por separado para aprovechar la caché de capas de Docker
+COPY ["IntegradorIdeas.csproj", "./"]
+RUN dotnet restore "IntegradorIdeas.csproj"
 
 # Copiar el resto de los archivos y compilar
-COPY . ./
-RUN dotnet publish -c Release -o out
+COPY . .
+RUN dotnet publish "IntegradorIdeas.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
-# Imagen base para ejecución (Usamos .NET 10.0)
+# Imagen base para ejecución
 FROM mcr.microsoft.com/dotnet/aspnet:10.0
 WORKDIR /app
-COPY --from=build /app/out .
+COPY --from=build /app/publish .
 
-# Configurar el puerto por defecto para Render
+# Asegurar que el usuario 'app' tenga permisos sobre la carpeta (para SQLite)
+USER root
+RUN chown -R app:app /app
+USER app
+
+# Exponer el puerto que usará Render
+# El puerto real será inyectado por Render en la variable de entorno $PORT
 ENV ASPNETCORE_URLS=http://+:10000
 EXPOSE 10000
+
 
 ENTRYPOINT ["dotnet", "IntegradorIdeas.dll"]

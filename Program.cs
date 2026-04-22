@@ -2,6 +2,8 @@ using IntegradorIdeas.Data;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 using IntegradorIdeas.Services;
+using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,6 +13,17 @@ builder.WebHost.UseUrls($"http://*:{port}");
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+
+// Configurar Health Checks
+builder.Services.AddHealthChecks();
+
+// Configurar Forwarded Headers para Render (proxy)
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    options.KnownNetworks.Clear();
+    options.KnownProxies.Clear();
+});
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -41,6 +54,8 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
+app.UseForwardedHeaders();
+
 // Deshabilitado para evitar bucles de redirección en Render (Render ya maneja HTTPS)
 // app.UseHttpsRedirection();
 app.UseRouting();
@@ -54,5 +69,7 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}")
     .WithStaticAssets();
+
+app.MapHealthChecks("/health");
 
 app.Run();
