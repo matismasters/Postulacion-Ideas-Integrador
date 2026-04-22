@@ -39,15 +39,28 @@ builder.Services.AddScoped<IIdeaSimilarityService, IdeaSimilarityService>();
 
 var app = builder.Build();
 
+// Mostrar errores detallados en todos los entornos para depuración inicial en Render
+app.UseDeveloperExceptionPage();
+
 // Apply pending migrations on startup to create the DB in Docker/Render
-using (var scope = app.Services.CreateScope())
+try
 {
-    var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    db.Database.Migrate();
+    using (var scope = app.Services.CreateScope())
+    {
+        var services = scope.ServiceProvider;
+        var context = services.GetRequiredService<ApplicationDbContext>();
+        context.Database.Migrate();
+        Console.WriteLine("Base de datos migrada exitosamente.");
+    }
+}
+catch (Exception ex)
+{
+    Console.WriteLine($"Error al migrar la base de datos: {ex.Message}");
+    // No detenemos la app para que al menos el health check responda
 }
 
 // Configure the HTTP request pipeline.
-if (!app.Environment.IsDevelopment())
+if (false && !app.Environment.IsDevelopment()) // Desactivado temporalmente para ver el error
 {
     app.UseExceptionHandler("/Home/Error");
     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
