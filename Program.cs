@@ -5,6 +5,10 @@ using IntegradorIdeas.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Configuración para Render: usar el puerto proporcionado por el entorno
+var port = Environment.GetEnvironmentVariable("PORT") ?? "10000";
+builder.WebHost.UseUrls($"http://*:{port}");
+
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 
@@ -30,7 +34,8 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
-app.UseHttpsRedirection();
+// Deshabilitado para evitar bucles de redirección en Render (Render ya maneja HTTPS)
+// app.UseHttpsRedirection();
 app.UseRouting();
 
 app.UseAuthentication();
