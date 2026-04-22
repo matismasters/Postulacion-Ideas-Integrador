@@ -26,6 +26,13 @@ builder.Services.AddScoped<IIdeaSimilarityService, IdeaSimilarityService>();
 
 var app = builder.Build();
 
+// Apply pending migrations on startup to create the DB in Docker/Render
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    db.Database.Migrate();
+}
+
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
