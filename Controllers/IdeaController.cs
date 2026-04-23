@@ -78,7 +78,7 @@ namespace IntegradorIdeas.Controllers
                 {
                     TeamId = team.Id,
                     Text = model.Text,
-                    PostDate = DateTime.Now,
+                    PostDate = GetMontevideaTime(),
                     Status = IdeaStatus.Pendiente,
                     SimilarToIdeaId = actualRoot?.Id,
                     SimilarityPercentage = mostSimilarIdea != null ? maxSimilarity : (double?)null
@@ -107,6 +107,34 @@ namespace IntegradorIdeas.Controllers
             }
 
             return View(idea);
+        }
+
+        /// <summary>
+        /// Devuelve la hora actual en la zona horaria de Montevideo, Uruguay (UTC-3 / UTC-2 en verano).
+        /// Funciona tanto en Linux (Docker/Render, IDs de IANA) como en Windows (IDs de Windows).
+        /// </summary>
+        private static DateTime GetMontevideaTime()
+        {
+            var utcNow = DateTime.UtcNow;
+
+            // Intentar con ID de IANA (Linux/macOS/Docker)
+            try
+            {
+                var tz = TimeZoneInfo.FindSystemTimeZoneById("America/Montevideo");
+                return TimeZoneInfo.ConvertTimeFromUtc(utcNow, tz);
+            }
+            catch { }
+
+            // Intentar con ID de Windows
+            try
+            {
+                var tz = TimeZoneInfo.FindSystemTimeZoneById("Montevideo Standard Time");
+                return TimeZoneInfo.ConvertTimeFromUtc(utcNow, tz);
+            }
+            catch { }
+
+            // Fallback: offset fijo UTC-3 (Montevideo en horario estándar)
+            return utcNow.AddHours(-3);
         }
     }
 }
