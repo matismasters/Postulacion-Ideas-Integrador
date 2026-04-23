@@ -16,14 +16,16 @@ FROM mcr.microsoft.com/dotnet/aspnet:10.0
 WORKDIR /app
 COPY --from=build /app/publish .
 
-# Asegurar que el usuario 'app' tenga permisos sobre la carpeta (para SQLite)
+# Asegurar que el usuario 'app' tenga permisos de escritura para el archivo SQLite
 USER root
-RUN chown -R app:app /app
+RUN mkdir -p /app && chown -R app:app /app && chmod -R 755 /app
 USER app
 
-# Exponer el puerto que usará Render
+# Variables de entorno
 ENV ASPNETCORE_URLS=http://+:10000
 ENV ASPNETCORE_ENVIRONMENT=Development
+# Variable estándar de .NET para detectar que estamos en un contenedor Docker
+ENV DOTNET_RUNNING_IN_CONTAINER=true
 EXPOSE 10000
 
 ENTRYPOINT ["dotnet", "IntegradorIdeas.dll"]

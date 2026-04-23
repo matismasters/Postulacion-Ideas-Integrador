@@ -25,20 +25,16 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
     options.KnownProxies.Clear();
 });
 
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-if (string.IsNullOrEmpty(connectionString) || connectionString.Contains("/app/"))
-{
-    // Si estamos en Render (Docker), forzar la ruta de la base de datos persistente
-    // Si estamos local, usar lo que diga el appsettings o el default
-    if (Environment.GetEnvironmentVariable("RENDER") != null)
-    {
-         connectionString = "Data Source=/app/integrador.db";
-    }
-    else 
-    {
-         connectionString = connectionString ?? "Data Source=integrador.db";
-    }
-}
+// Detectar si estamos corriendo en un contenedor Docker/Render
+// En contenedor, el WORKDIR es /app, así que siempre usamos esa ruta explícitamente
+var isDocker = Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER") == "true"
+               || Environment.GetEnvironmentVariable("RENDER") != null;
+
+var connectionString = isDocker
+    ? "Data Source=/app/integrador.db"
+    : (builder.Configuration.GetConnectionString("DefaultConnection") ?? "Data Source=integrador.db");
+
+Console.WriteLine($"[DB] Connection string: {connectionString}");
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlite(connectionString));
@@ -57,21 +53,31 @@ var app = builder.Build();
 // Mostrar errores detallados en todos los entornos para depuración inicial en Render
 app.UseDeveloperExceptionPage();
 
-// Apply pending migrations on startup to create the DB in Docker/Render
+// Crear/migrar la base de datos al arrancar la aplicación
 try
 {
-    using (var scope = app.Services.CreateScope())
-    {
-        var services = scope.ServiceProvider;
-        var context = services.GetRequiredService<ApplicationDbContext>();
-        context.Database.Migrate();
-        Console.WriteLine("Base de datos migrada exitosamente.");
-    }
+    using var scope = app.Services.CreateScope();
+    var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+    // Intentar aplicar migraciones primero
+    context.Database.Migrate();
+    Console.WriteLine("[DB] Migraciones aplicadas exitosamente.");
 }
-catch (Exception ex)
+catch (Exception migrateEx)
 {
-    Console.WriteLine($"Error al migrar la base de datos: {ex.Message}");
-    // No detenemos la app para que al menos el health check responda
+    Console.WriteLine($"[DB] Migrate() falló: {migrateEx.Message}. Intentando EnsureCreated()...");
+    try
+    {
+        using var scope2 = app.Services.CreateScope();
+        var context2 = scope2.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        context2.Database.EnsureCreated();
+        Console.WriteLine("[DB] EnsureCreated() ejecutado exitosamente.");
+    }
+    catch (Exception ensureEx)
+    {
+        // Log crítico pero no detener la app — el health check seguirá respondiendo
+        Console.WriteLine($"[DB] CRÍTICO - EnsureCreated() también falló: {ensureEx.Message}");
+    }
 }
 
 // Configure the HTTP request pipeline.
