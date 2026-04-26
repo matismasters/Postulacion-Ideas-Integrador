@@ -25,19 +25,30 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
     options.KnownProxies.Clear();
 });
 
-// Detectar si estamos corriendo en un contenedor Docker/Render
-// En contenedor, el WORKDIR es /app, así que siempre usamos esa ruta explícitamente
-var isDocker = Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER") == "true"
-               || Environment.GetEnvironmentVariable("RENDER") != null;
+// ── Base de datos: PostgreSQL ─────────────────────────────────────────────────
+// Render inyecta automáticamente DATABASE_URL con el formato:
+//   postgres://user:password@host:port/database
+// Npgsql acepta directamente ese formato (connection URI).
+// Para desarrollo local usamos el valor de appsettings.json.
+var databaseUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
 
-var connectionString = isDocker
-    ? "Data Source=/app/integrador.db"
-    : (builder.Configuration.GetConnectionString("DefaultConnection") ?? "Data Source=integrador.db");
-
-Console.WriteLine($"[DB] Connection string: {connectionString}");
+string connectionString;
+if (!string.IsNullOrEmpty(databaseUrl))
+{
+    // En producción (Render): usar la URI de PostgreSQL directamente
+    connectionString = databaseUrl;
+    Console.WriteLine("[DB] Usando DATABASE_URL de variable de entorno (PostgreSQL en Render).");
+}
+else
+{
+    // En desarrollo local: usar appsettings.json
+    connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
+                       ?? "Host=localhost;Database=integradorideas;Username=postgres;Password=postgres";
+    Console.WriteLine($"[DB] Usando connection string local: {connectionString}");
+}
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlite(connectionString));
+    options.UseNpgsql(connectionString));
 
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
