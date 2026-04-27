@@ -11,6 +11,7 @@ var builder = WebApplication.CreateBuilder(args);
 var port = Environment.GetEnvironmentVariable("PORT") ?? "10000";
 builder.WebHost.UseUrls($"http://*:{port}");
 
+
 var databaseUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
 Console.WriteLine($"[DB] DATABASE_URL existe: {!string.IsNullOrEmpty(databaseUrl)}");
 
@@ -29,10 +30,6 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
 });
 
 // ── Base de datos: PostgreSQL ─────────────────────────────────────────────────
-// Render inyecta automáticamente DATABASE_URL con el formato:
-//   postgres://user:password@host:port/database
-// Npgsql acepta directamente ese formato (connection URI).
-// Para desarrollo local usamos el valor de appsettings.json.
 string connectionString;
 if (!string.IsNullOrEmpty(databaseUrl))
 {
