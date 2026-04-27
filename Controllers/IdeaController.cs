@@ -109,32 +109,36 @@ namespace IntegradorIdeas.Controllers
             return View(idea);
         }
 
-        /// <summary>
-        /// Devuelve la hora actual en la zona horaria de Montevideo, Uruguay (UTC-3 / UTC-2 en verano).
-        /// Funciona tanto en Linux (Docker/Render, IDs de IANA) como en Windows (IDs de Windows).
-        /// </summary>
         private static DateTime GetMontevideaTime()
         {
             var utcNow = DateTime.UtcNow;
+            DateTime localTime;
 
             // Intentar con ID de IANA (Linux/macOS/Docker)
             try
             {
                 var tz = TimeZoneInfo.FindSystemTimeZoneById("America/Montevideo");
-                return TimeZoneInfo.ConvertTimeFromUtc(utcNow, tz);
+                localTime = TimeZoneInfo.ConvertTimeFromUtc(utcNow, tz);
             }
-            catch { }
-
-            // Intentar con ID de Windows
-            try
+            catch 
             {
-                var tz = TimeZoneInfo.FindSystemTimeZoneById("Montevideo Standard Time");
-                return TimeZoneInfo.ConvertTimeFromUtc(utcNow, tz);
+                // Intentar con ID de Windows
+                try
+                {
+                    var tz = TimeZoneInfo.FindSystemTimeZoneById("Montevideo Standard Time");
+                    localTime = TimeZoneInfo.ConvertTimeFromUtc(utcNow, tz);
+                }
+                catch 
+                {
+                    // Fallback: offset fijo UTC-3 (Montevideo en horario estándar)
+                    localTime = utcNow.AddHours(-3);
+                }
             }
-            catch { }
 
-            // Fallback: offset fijo UTC-3 (Montevideo en horario estándar)
-            return utcNow.AddHours(-3);
+            // IMPORTANTE para PostgreSQL (Npgsql): 
+            // Requiere que el Kind sea UTC para guardarlo en columnas 'timestamp with time zone'.
+            // Al especificarlo como UTC engañamos a Postgres para que guarde la hora de Montevideo correctamente.
+            return DateTime.SpecifyKind(localTime, DateTimeKind.Utc);
         }
     }
 }
