@@ -3,6 +3,7 @@ using IntegradorIdeas.Models;
 using IntegradorIdeas.Services;
 using IntegradorIdeas.ViewModels;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 
 namespace IntegradorIdeas.Controllers
@@ -19,8 +20,9 @@ namespace IntegradorIdeas.Controllers
         }
 
         [HttpGet]
-        public IActionResult Post()
+        public async Task<IActionResult> Post()
         {
+            ViewBag.Teams = new SelectList(await _context.Teams.OrderBy(t => t.Name).ToListAsync(), "Name", "Name");
             return View();
         }
 
@@ -34,12 +36,14 @@ namespace IntegradorIdeas.Controllers
                 if (team == null)
                 {
                     ModelState.AddModelError("TeamName", "el equipo no existe, verifique el nombre");
+                    ViewBag.Teams = new SelectList(await _context.Teams.OrderBy(t => t.Name).ToListAsync(), "Name", "Name");
                     return View(model);
                 }
 
                 if (team.Password != model.TeamPassword)
                 {
                     ModelState.AddModelError("TeamPassword", "el password es incorrecto");
+                    ViewBag.Teams = new SelectList(await _context.Teams.OrderBy(t => t.Name).ToListAsync(), "Name", "Name");
                     return View(model);
                 }
 
@@ -91,6 +95,7 @@ namespace IntegradorIdeas.Controllers
                 return RedirectToAction("Index", "Home");
             }
 
+            ViewBag.Teams = new SelectList(await _context.Teams.OrderBy(t => t.Name).ToListAsync(), "Name", "Name");
             return View(model);
         }
 

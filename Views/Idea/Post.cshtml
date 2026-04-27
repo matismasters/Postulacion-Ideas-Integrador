@@ -18,7 +18,9 @@
                     <div class="row mb-3">
                         <div class="col-md-6">
                             <label asp-for="TeamName" class="form-label fw-bold"></label>
-                            <input asp-for="TeamName" class="form-control" placeholder="Nombre completo de su equipo" />
+                            <select asp-for="TeamName" class="form-select" asp-items="ViewBag.Teams">
+                                <option value="">-- Seleccione su equipo --</option>
+                            </select>
                             <span asp-validation-for="TeamName" class="text-danger small"></span>
                         </div>
                         <div class="col-md-6">
