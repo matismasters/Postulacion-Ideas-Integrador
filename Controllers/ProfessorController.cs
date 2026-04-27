@@ -74,8 +74,7 @@ namespace IntegradorIdeas.Controllers
         {
             var ideas = await _context.Ideas
                 .Include(i => i.Team)
-                .OrderBy(i => i.PostDate)
-                .OrderBy(i => i.Status == IdeaStatus.Pendiente ? 0 : 1) // Pendientes primero, luego el resto
+                .OrderByDescending(i => i.PostDate) // Más nueva primero
                 .ToListAsync();
 
             return View(ideas);

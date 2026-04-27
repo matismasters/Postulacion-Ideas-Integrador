@@ -9,7 +9,14 @@
         <div class="card shadow-sm border-0">
             <div class="card-header bg-dark text-white py-3 d-flex justify-content-between align-items-center">
                 <h4 class="mb-0"><i class="bi bi-file-text me-2"></i>Detalle de Idea</h4>
-                <span class="badge bg-secondary fs-6">@Model.Status.ToString()</span>
+                @{
+                    var (badgeClass, badgeLabel) = Model.Status switch {
+                        IntegradorIdeas.Models.IdeaStatus.Aprobada   => ("bg-success", "Aprobada"),
+                        IntegradorIdeas.Models.IdeaStatus.NoAprobada => ("bg-danger",  "No Aprobada"),
+                        _                                             => ("bg-warning text-dark", "Pendiente")
+                    };
+                }
+                <span class="badge @badgeClass fs-6">@badgeLabel</span>
             </div>
             <div class="card-body p-4 bg-light">
                 
