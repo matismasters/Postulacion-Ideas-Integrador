@@ -71,25 +71,13 @@ try
     using var scope = app.Services.CreateScope();
     var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
-    // Intentar aplicar migraciones primero
+    // Aplicar migraciones de forma segura
     context.Database.Migrate();
     Console.WriteLine("[DB] Migraciones aplicadas exitosamente.");
 }
 catch (Exception migrateEx)
 {
-    Console.WriteLine($"[DB] Migrate() falló: {migrateEx.Message}. Intentando EnsureCreated()...");
-    try
-    {
-        using var scope2 = app.Services.CreateScope();
-        var context2 = scope2.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-        context2.Database.EnsureCreated();
-        Console.WriteLine("[DB] EnsureCreated() ejecutado exitosamente.");
-    }
-    catch (Exception ensureEx)
-    {
-        // Log crítico pero no detener la app — el health check seguirá respondiendo
-        Console.WriteLine($"[DB] CRÍTICO - EnsureCreated() también falló: {ensureEx.Message}");
-    }
+    Console.WriteLine($"[DB] ERROR CRÍTICO - Migrate() falló: {migrateEx.Message}. Asegúrese de que la base de datos PostgreSQL esté en ejecución.");
 }
 
 // Configure the HTTP request pipeline.
