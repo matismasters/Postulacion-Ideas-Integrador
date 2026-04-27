@@ -33,9 +33,21 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
 string connectionString;
 if (!string.IsNullOrEmpty(databaseUrl))
 {
-    // En producción (Render): usar la URI de PostgreSQL directamente
-    connectionString = databaseUrl;
-    Console.WriteLine("[DB] Usando DATABASE_URL de variable de entorno (PostgreSQL en Render).");
+    // En producción (Render): parsear la URI de PostgreSQL
+    // Render provee DATABASE_URL en formato: postgres://user:password@host:port/database
+    var databaseUri = new Uri(databaseUrl);
+    var userInfo = databaseUri.UserInfo.Split(':');
+    
+    var builderDb = new Npgsql.NpgsqlConnectionStringBuilder
+    {
+        Host = databaseUri.Host,
+        Port = databaseUri.Port,
+        Username = userInfo[0],
+        Password = userInfo[1],
+        Database = databaseUri.LocalPath.TrimStart('/')
+    };
+    connectionString = builderDb.ToString();
+    Console.WriteLine("[DB] Usando DATABASE_URL parseada de variable de entorno (PostgreSQL en Render).");
 }
 else
 {
