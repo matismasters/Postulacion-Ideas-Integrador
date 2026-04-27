@@ -13,7 +13,6 @@ builder.WebHost.UseUrls($"http://*:{port}");
 
 var databaseUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
 Console.WriteLine($"[DB] DATABASE_URL existe: {!string.IsNullOrEmpty(databaseUrl)}");
-Console.WriteLine($"[DB] DATABASE_URL valor: {databaseUrl?.Substring(0, Math.Min(30, databaseUrl?.Length ?? 0))}...");
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
@@ -34,8 +33,6 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
 //   postgres://user:password@host:port/database
 // Npgsql acepta directamente ese formato (connection URI).
 // Para desarrollo local usamos el valor de appsettings.json.
-var databaseUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
-
 string connectionString;
 if (!string.IsNullOrEmpty(databaseUrl))
 {
