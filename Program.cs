@@ -11,6 +11,10 @@ var builder = WebApplication.CreateBuilder(args);
 var port = Environment.GetEnvironmentVariable("PORT") ?? "10000";
 builder.WebHost.UseUrls($"http://*:{port}");
 
+var databaseUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
+Console.WriteLine($"[DB] DATABASE_URL existe: {!string.IsNullOrEmpty(databaseUrl)}");
+Console.WriteLine($"[DB] DATABASE_URL valor: {databaseUrl?.Substring(0, Math.Min(30, databaseUrl?.Length ?? 0))}...");
+
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 
