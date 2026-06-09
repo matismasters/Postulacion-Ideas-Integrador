@@ -1,16 +1,64 @@
-version: '3.8'
+# Compose para el servidor de Codice (staging/prod). Lo que cambia entre entornos es el .env.
+# Patrón calcado de apps/educativa: app ASP.NET + DB dedicada + Traefik.
+# La app aplica migraciones EF Core al arrancar (Program.cs: context.Database.Migrate()).
+#
+# Para correr local con el compose viejo de Render mirá el historial de git; este compose
+# asume la red externa `traefik-network` del servidor de Codice.
+
 services:
   db:
-    image: postgres:latest
-    container_name: postgres_db
+    image: postgres:16
+    container_name: postulacion-ideas-postgres
+    restart: unless-stopped
+    env_file: .env
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: integradorideas
-    ports:
-      - "5432:5432"
+      POSTGRES_USER: ${POSTGRES_USER:-postulacion}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-}
+      POSTGRES_DB: ${POSTGRES_DB:-integradorideas}
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - postulacion_ideas_pgdata:/var/lib/postgresql/data
+    networks:
+      - default
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  app:
+    build: .
+    container_name: postulacion-ideas-app
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      PORT: "8080"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - traefik-network
+      - default
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 60s
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.postulacion-ideas.rule=Host(`${POSTULACION_IDEAS_HOST:-postulacion-ideas.codice.uy}`)"
+      - "traefik.http.routers.postulacion-ideas.entrypoints=websecure,webinternal"
+      - "traefik.http.routers.postulacion-ideas.tls=true"
+      - "traefik.http.routers.postulacion-ideas.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.postulacion-ideas.middlewares=default-chain@file"
+      - "traefik.http.services.postulacion-ideas.loadbalancer.server.port=8080"
+
+networks:
+  traefik-network:
+    external: true
+  default:
+    driver: bridge
 
 volumes:
-  pgdata:
+  postulacion_ideas_pgdata:

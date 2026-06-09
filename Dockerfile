@@ -14,11 +14,19 @@ RUN dotnet publish "IntegradorIdeas.csproj" -c Release -o /app/publish /p:UseApp
 # Imagen base para ejecución
 FROM mcr.microsoft.com/dotnet/aspnet:10.0
 WORKDIR /app
+
+# curl se usa para el healthcheck del compose (la imagen aspnet no lo trae).
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends curl \
+    && rm -rf /var/lib/apt/lists/*
+
 COPY --from=build /app/publish .
 
-# Variables de entorno
-ENV ASPNETCORE_URLS=http://+:10000
-ENV ASPNETCORE_ENVIRONMENT=Development
-EXPOSE 10000
+# Variables de entorno. El puerto y el environment se pueden sobreescribir desde compose
+# (en el servidor de Codice: PORT=8080, ASPNETCORE_ENVIRONMENT=Production).
+ENV ASPNETCORE_URLS=http://+:8080
+ENV ASPNETCORE_ENVIRONMENT=Production
+ENV PORT=8080
+EXPOSE 8080
 
 ENTRYPOINT ["dotnet", "IntegradorIdeas.dll"]
